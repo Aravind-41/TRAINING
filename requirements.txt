@@ -1,0 +1,6 @@
+fastapi
+unicorn
+python-dotenv
+openai
+anthropic
+google-generative-ai
