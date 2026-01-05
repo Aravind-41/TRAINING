@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1200px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        textarea, select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #description, #outputCode {
+            min-height: 200px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        .output-section {
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #764ba2;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background-color: #ffebee;
+            border: 2px solid #ef5350;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .success {
+            background-color: #e8f5e9;
+            border: 2px solid #66bb6a;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success.active {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-weight: 600;
+            font-size: 1em;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        #explanation {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            line-height: 1.6;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Code Generator</h1>
+        <p class="subtitle">Generate Python code from natural language descriptions</p>
+
+        <div class="content">
+            <!-- Left Panel - Input -->
+            <div class="section">
+                <label for="description">Describe what code you need:</label>
+                <textarea id="description" placeholder="E.g., 'Create a function that validates email addresses and returns True if valid'"></textarea>
+
+                <label for="language" style="margin-top: 20px;">Programming Language:</label>
+                <select id="language">
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="java">Java</option>
+                    <option value="csharp">C#</option>
+                </select>
+
+                <div class="button-group">
+                    <button class="btn-primary" id="generateBtn">✨ Generate Code</button>
+                    <button class="btn-secondary" id="clearBtn">Clear</button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <span class="spinner"></span>
+                    Generating code...
+                </div>
+
+                <div class="error" id="error"></div>
+            </div>
+
+            <!-- Right Panel - Output -->
+            <div class="section">
+                <div class="tabs">
+                    <button class="tab active" data-tab="code-tab">Generated Code</button>
+                    <button class="tab" data-tab="explain-tab">Explanation</button>
+                </div>
+
+                <div id="code-tab" class="tab-content active">
+                    <div class="output-section">
+                        <button class="copy-btn" id="copyBtn">📋 Copy</button>
+                        <textarea id="outputCode" readonly placeholder="Generated code will appear here..." style="margin-top: 0;"></textarea>
+                    </div>
+                    <div class="success" id="copySuccess">✓ Code copied to clipboard!</div>
+                </div>
+
+                <div id="explain-tab" class="tab-content">
+                    <div id="explanation" style="display: none;">
+                        <p id="explanationText"></p>
+                        <button class="btn-secondary" id="explainBtn" style="margin-top: 20px; width: auto; padding: 10px 20px;">📖 Explain Generated Code</button>
+                    </div>
+                    <div class="loading" id="explainLoading" style="margin-top: 20px;">
+                        <span class="spinner"></span>
+                        Generating explanation...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const explainBtn = document.getElementById('explainBtn');
+        const descriptionInput = document.getElementById('description');
+        const languageSelect = document.getElementById('language');
+        const outputCode = document.getElementById('outputCode');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const copySuccess = document.getElementById('copySuccess');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const explanationDiv = document.getElementById('explanation');
+        const explanationText = document.getElementById('explanationText');
+        const explainLoading = document.getElementById('explainLoading');
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tabName).classList.add('active');
+            });
+        });
+
+        // Generate Code
+        generateBtn.addEventListener('click', async () => {
+            const description = descriptionInput.value.trim();
+            const language = languageSelect.value;
+
+            if (!description) {
+                showError('Please describe what code you need');
+                return;
+            }
+
+            try {
+                generateBtn.disabled = true;
+                loading.classList.add('active');
+                error.classList.remove('active');
+                copySuccess.classList.remove('active');
+
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        description: description,
+                        language: language
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate code');
+                }
+
+                outputCode.value = data.code;
+                explanationDiv.style.display = 'none';
+                
+                // Switch to code tab
+                tabs[0].click();
+                
+                showSuccess('Code generated successfully!');
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                generateBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        });
+
+        // Explain Code
+        explainBtn.addEventListener('click', async () => {
+            const code = outputCode.value.trim();
+
+            if (!code) {
+                showError('No code to explain');
+                return;
+            }
+
+            try {
+                explainBtn.disabled = true;
+                explainLoading.style.display = 'block';
+
+                const response = await fetch('/explain', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate explanation');
+                }
+
+                explanationText.textContent = data.explanation;
+                explanationDiv.style.display = 'block';
+                explainBtn.style.display = 'none';
+                
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                explainBtn.disabled = false;
+                explainLoading.style.display = 'none';
+            }
+        });
+
+        // Copy Code
+        copyBtn.addEventListener('click', () => {
+            if (!outputCode.value) {
+                showError('No code to copy');
+                return;
+            }
+
+            navigator.clipboard.writeText(outputCode.value).then(() => {
+                copySuccess.classList.add('active');
+                setTimeout(() => {
+                    copySuccess.classList.remove('active');
+                }, 2000);
+            });
+        });
+
+        // Clear
+        clearBtn.addEventListener('click', () => {
+            descriptionInput.value = '';
+            outputCode.value = '';
+            explanationDiv.style.display = 'none';
+            explainBtn.style.display = 'block';
+            error.classList.remove('active');
+            copySuccess.classList.remove('active');
+            descriptionInput.focus();
+        });
+
+        function showError(message) {
+            error.textContent = message;
+            error.classList.add('active');
+        }
+
+        function showSuccess(message) {
+            copySuccess.textContent = '✓ ' + message;
+            copySuccess.classList.add('active');
+            setTimeout(() => {
+                copySuccess.classList.remove('active');
+            }, 3000);
+        }
+
+        // Focus on description input on load
+        window.addEventListener('load', () => {
+            descriptionInput.focus();
+        });
+    </script>
+</body>
+</html>
